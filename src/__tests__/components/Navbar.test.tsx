@@ -1,14 +1,14 @@
+ 
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-
 import Navbar from "../../Components/Navbar";
 
 jest.mock("../../assets/YouStream.jpg", () => "logo-mock");
 
 const mockSignOutAll = jest.fn();
 jest.mock("../../redux/auth/authThunk", () => ({
-  signOutAll: () => mockSignOutAll(), // just call the mock when used
+  signOutAll: () => mockSignOutAll(),
 }));
 
 const mockNavigate = jest.fn();
@@ -20,11 +20,19 @@ jest.mock("react-router-dom", () => {
   };
 });
 
-import * as ReactRedux from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+jest.mock("react-redux", () => {
+  const actual = jest.requireActual("react-redux");
+  return {
+    ...actual,
+    useSelector: jest.fn(),
+    useDispatch: jest.fn(),
+  };
+});
+const mockedUseSelector = useSelector as jest.Mock;
+const mockedUseDispatch = useDispatch as jest.Mock;
 
-const mockUseSelector = jest.spyOn(ReactRedux, "useSelector");
-const mockUseDispatch = jest.spyOn(ReactRedux, "useDispatch");
-
+ 
 jest.mock("../../Components/SideDrawer", () => () => (
   <div data-testid="side-drawer" />
 ));
@@ -35,14 +43,15 @@ describe("Navbar", () => {
   });
 
   const setup = (user: null | { name?: string; email?: string } = null) => {
-    mockUseSelector.mockImplementation((selector: any) =>
+     
+    mockedUseSelector.mockImplementation((selector: any) =>
       selector({
         auth: { user },
       })
     );
 
     const dispatchMock = jest.fn().mockResolvedValue(undefined);
-    mockUseDispatch.mockReturnValue(dispatchMock);
+    mockedUseDispatch.mockReturnValue(dispatchMock);
 
     render(
       <MemoryRouter>
@@ -65,6 +74,7 @@ describe("Navbar", () => {
 
     const input = screen.getByPlaceholderText("Search");
     fireEvent.change(input, { target: { value: "react testing" } });
+
     const searchIcon = screen.getByTestId("SearchIcon");
     const searchButton = searchIcon.closest("button") as HTMLButtonElement;
 
@@ -76,17 +86,18 @@ describe("Navbar", () => {
   });
 
   test("navigates to search page when pressing Enter in search field", () => {
-    setup(null);
+  setup(null);
 
-    const input = screen.getByPlaceholderText("Search");
-    fireEvent.change(input, { target: { value: "vite jest" } });
+  const input = screen.getByPlaceholderText("Search");
+  fireEvent.change(input, { target: { value: "vite jest" } });
 
-    fireEvent.keyDown(input, { key: "Enter", code: "Enter", charCode: 13 });
+  fireEvent.keyDown(input, { key: "Enter", code: "Enter", charCode: 13 });
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      "/search/videos/vite%20jest"
-    );
-  });
+  expect(mockNavigate).toHaveBeenCalledWith(
+    "/search/videos/vite%20jest"
+  );
+});
+
 
   test("clicking logo clears search and navigates home", () => {
     setup(null);
@@ -101,22 +112,18 @@ describe("Navbar", () => {
   });
 
   test("shows avatar and no Login button when user is authenticated", () => {
-    setup({ name: "Test User", email: "test@example.com" });
+    setup({ name: "vijay", email: "vijay@example.com" });
 
     expect(screen.queryByText(/Login/i)).not.toBeInTheDocument();
 
-    const avatarButton = screen.getByRole("button", {
-      name: /t/i, // avatar uses first letter of name/email
-    });
+    const avatarButton = screen.getByRole("button", { name: /v/i });
     expect(avatarButton).toBeInTheDocument();
   });
 
   test("opens menu on avatar click and shows Profile/Settings/Logout", () => {
-    setup({ name: "Test User", email: "test@example.com" });
+    setup({ name: "vijay", email: "vijay@example.com" });
 
-    const avatarButton = screen.getByRole("button", {
-      name: /t/i,
-    });
+    const avatarButton = screen.getByRole("button", { name: /v/i });
     fireEvent.click(avatarButton);
 
     expect(screen.getByText(/Profile/i)).toBeInTheDocument();
@@ -125,18 +132,20 @@ describe("Navbar", () => {
   });
 
   test("clicking Logout calls signOutAll and navigates home", async () => {
-    setup({ name: "Test User", email: "test@example.com" });
+  setup({ name: "Vijay", email: "vijay@example.com" });
 
-    const avatarButton = screen.getByRole("button", {
-      name: /t/i,
-    });
-    fireEvent.click(avatarButton);
+  const avatarButton = screen.getByRole("button", {
+    name: /v/i,
+  });
+  fireEvent.click(avatarButton);
 
-    const logoutItem = screen.getByText(/Logout/i);
-    fireEvent.click(logoutItem);
+  const logoutItem = screen.getByText(/Logout/i);
+  fireEvent.click(logoutItem);
 
+  await waitFor(() => {
     expect(mockSignOutAll).toHaveBeenCalled();
-
     expect(mockNavigate).toHaveBeenCalledWith("/");
   });
+});
+
 });

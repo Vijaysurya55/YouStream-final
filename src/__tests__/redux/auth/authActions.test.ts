@@ -5,7 +5,7 @@ describe('Auth Actions', () => {
 
     test('setAuth should create an action to set authentication details', () => {
         const mockPayload = {
-            user: { id: '123', name: 'Test User' },
+            user: { id: '123', name: 'vijay' },
             token: 'mock-token-string',
             provider: "google",
         };

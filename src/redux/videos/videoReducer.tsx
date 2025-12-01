@@ -29,8 +29,6 @@ export default function videoReducer(state = initialState, action: any): VideoSt
           error: null,
         };
       }
-      
-      // return { ...state, trending: Array.isArray(action.payload) ? action.payload : state.trending, loading: false };
     }
     case types.FETCH_TRENDING_VIDEOS_FAILURE:
       return { ...state, loading: false, error: action.payload ?? "Unknown error" };

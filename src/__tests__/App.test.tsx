@@ -1,4 +1,3 @@
-// src/__tests__/App.test.tsx
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import { Provider } from "react-redux";
@@ -36,7 +35,7 @@ describe("App", () => {
 
   test("restores user from localStorage and renders main UI", async () => {
     const fakeAuth = {
-      user: { name: "test user", email: "test@example.com" },
+      user: { name: "vijay", email: "vijay@example.com" },
       token: "fake-token",
       provider: "google",
     };
